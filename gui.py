@@ -1,4 +1,4 @@
-from tkinter import *
+from tkinter import Tk, Frame, Label, Button, StringVar, CENTER, NORMAL, DISABLED, RAISED
 import random as r
 from database import Database
 
@@ -11,13 +11,14 @@ class MathGame:
 
         self.db = Database("data.csv")
         self.time_left = 20
-        self.count = 0
-        self.total = 0
+        self.correct_count = 0
+        self.total_questions = 0
         self.correct_answer = None
 
         self.text = StringVar(value="Question will appear here")
         self.sam1 = StringVar(value="START")
         self.timer_text = StringVar(value=f"Time Left: {self.time_left}s")
+        self.score_text = StringVar(value="Score: 0/0")
 
         self.setup_ui()
 
@@ -32,8 +33,11 @@ class MathGame:
 
         Label(self.frame, textvariable=self.text, font=("Arial", 14), bg="lightblue").grid(row=2, column=0, columnspan=2, pady=20)
 
+        self.score_label = Label(self.frame, textvariable=self.score_text, font=("Arial", 12, "bold"), bg="lightblue")
+        self.score_label.grid(row=3, column=0, columnspan=2, pady=10)
+
         self.start_button = Button(self.frame, textvariable=self.sam1, padx=20, font=("Arial", 14), bg="green", fg="white", relief=RAISED, bd=5, command=self.start_game)
-        self.start_button.grid(row=3, column=0, columnspan=2, pady=10)
+        self.start_button.grid(row=4, column=0, columnspan=2, pady=10)
 
     def start_game(self):
         self.sam1.set("SKIP")
@@ -46,7 +50,7 @@ class MathGame:
         self.option_buttons = []
         for i in range(4):
             btn = Button(self.frame, padx=50, font=("Arial", 12, "bold"), relief=RAISED, bd=5)
-            btn.grid(row=4 + i, column=0, columnspan=2, pady=5)
+            btn.grid(row=5 + i, column=0, columnspan=2, pady=5)
             self.option_buttons.append(btn)
 
     def generate_question(self):
@@ -61,6 +65,7 @@ class MathGame:
     def add_question(self):
         self.equation, self.options_list, self.correct_answer = self.generate_question()
         self.text.set(f"Solve: {self.equation}")
+        self.total_questions += 1
 
         for i, option in enumerate(self.options_list):
             self.option_buttons[i].config(
@@ -72,12 +77,18 @@ class MathGame:
 
     def skip_question(self):
         self.db.mark_skipped()
+        self.update_score()
         self.add_question()
 
     def check_answer(self, button, selected):
         is_correct = round(selected, 2) == round(self.correct_answer, 2)
         button.config(bg="green" if is_correct else "red")
+
+        if is_correct:
+            self.correct_count += 1
+
         self.db.store_answer(round(selected, 2), "Correct" if is_correct else "Incorrect")
+        self.update_score()
 
         if not is_correct:
             for btn, opt in zip(self.option_buttons, self.options_list):
@@ -85,6 +96,9 @@ class MathGame:
                     btn.config(bg="green")
 
         self.root.after(190, self.add_question)
+
+    def update_score(self):
+        self.score_text.set(f"Score: {self.correct_count}/{self.total_questions}")
 
     def update_timer(self, time_left):
         if time_left > 0:
@@ -99,3 +113,4 @@ class MathGame:
             btn.config(state=DISABLED)
         self.start_button.config(command=self.root.quit)
         self.db.save_to_csv()
+        self.text.set(f"Game Over! Final Score: {self.correct_count}/{self.total_questions}")

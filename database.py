@@ -24,16 +24,23 @@ class Database:
         self.data['Result'].append("Skipped")
 
     def save_to_csv(self):
-        while len(self.data['Inputted_Answer']) < len(self.data['Questions']):
-            self.data['Inputted_Answer'].append(pd.NA)
-            self.data['Result'].append("Skipped")
+        max_len = len(self.data["Questions"])  # Get the total questions count
+    
+    # Ensure all lists have the same length by appending missing values
+        while len(self.data["Inputted_Answer"]) < max_len:
+            self.data["Inputted_Answer"].append(pd.NA)
+            self.data["Result"].append("Skipped")
 
+    # Convert dictionary to DataFrame
         df = pd.DataFrame(self.data)
 
+    # Save to CSV (append if file exists, else create new)
         if os.path.exists(self.file_path):
-            df.to_csv(self.file_path, mode='a', header=False, index=False, na_rep="NaN")
+            df.to_csv(self.file_path, mode="a", header=False, index=False, na_rep="NaN")
         else:
-            df.to_csv(self.file_path, mode='w', header=True, index=False, na_rep="NaN")
+            df.to_csv(self.file_path, mode="w", header=True, index=False, na_rep="NaN")
 
+    # Clear data after saving
         for key in self.data.keys():
             self.data[key] = []
+

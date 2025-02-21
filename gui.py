@@ -1,6 +1,6 @@
 from tkinter import Tk, Frame, Label, Button, StringVar, CENTER, NORMAL, DISABLED, RAISED
-import random as r
 from database import Database
+from game_logic import GameLogic
 
 class MathGame:
     def __init__(self, root):
@@ -10,10 +10,8 @@ class MathGame:
         self.root.configure(bg="lightblue")
 
         self.db = Database("data.csv")
+        self.logic = GameLogic()
         self.time_left = 20
-        self.correct_count = 0
-        self.total_questions = 0
-        self.correct_answer = None
 
         self.text = StringVar(value="Question will appear here")
         self.sam1 = StringVar(value="START")
@@ -53,52 +51,39 @@ class MathGame:
             btn.grid(row=5 + i, column=0, columnspan=2, pady=5)
             self.option_buttons.append(btn)
 
-    def generate_question(self):
-        a, b, c = r.randint(1, 9), r.randint(1, 20), r.randint(-9, 90)
-        correct_answer = (c - b) / a
-        question = f'{a}x + {b} = {c}'
-        options = [correct_answer] + [correct_answer + r.uniform(-10, 10) for _ in range(3)]
-        r.shuffle(options)
-        self.db.store_question(question, round(correct_answer, 2))
-        return question, options, correct_answer
-
     def add_question(self):
-        self.equation, self.options_list, self.correct_answer = self.generate_question()
-        self.text.set(f"Solve: {self.equation}")
-        self.total_questions += 1
+        question, options, self.correct_answer = self.logic.generate_question()
+        self.options_list = options  # Store options list
+        self.text.set(f"Solve: {question}")
 
-        for i, option in enumerate(self.options_list):
+        for i, option in enumerate(options):
             self.option_buttons[i].config(
-                text=round(option, 2),
-                command=lambda btn=self.option_buttons[i], opt=option: self.check_answer(btn, opt),
-                bg="white",
-                state=NORMAL
-            )
+            text=round(option, 2),
+            command=lambda btn=self.option_buttons[i], opt=option: self.check_answer(btn, opt),
+            bg="white",
+            state=NORMAL
+        )
+
+    def check_answer(self, button, selected):
+        is_correct = self.logic.check_answer(selected)
+        button.config(bg="green" if is_correct else "red")
+
+        if not is_correct:
+            for btn, opt in zip(self.option_buttons, self.options_list):  # Now options_list is defined
+                if round(opt, 2) == round(self.correct_answer, 2):
+                    btn.config(bg="green")
+
+        self.db.store_answer(round(selected, 2), "Correct" if is_correct else "Incorrect")
+        self.update_score()
+        self.root.after(190, self.add_question)
 
     def skip_question(self):
         self.db.mark_skipped()
         self.update_score()
         self.add_question()
 
-    def check_answer(self, button, selected):
-        is_correct = round(selected, 2) == round(self.correct_answer, 2)
-        button.config(bg="green" if is_correct else "red")
-
-        if is_correct:
-            self.correct_count += 1
-
-        self.db.store_answer(round(selected, 2), "Correct" if is_correct else "Incorrect")
-        self.update_score()
-
-        if not is_correct:
-            for btn, opt in zip(self.option_buttons, self.options_list):
-                if round(opt, 2) == round(self.correct_answer, 2):
-                    btn.config(bg="green")
-
-        self.root.after(190, self.add_question)
-
     def update_score(self):
-        self.score_text.set(f"Score: {self.correct_count}/{self.total_questions}")
+        self.score_text.set(f"Score: {self.logic.correct_count}/{self.logic.total_questions}")
 
     def update_timer(self, time_left):
         if time_left > 0:
@@ -113,4 +98,4 @@ class MathGame:
             btn.config(state=DISABLED)
         self.start_button.config(command=self.root.quit)
         self.db.save_to_csv()
-        self.text.set(f"Game Over! Final Score: {self.correct_count}/{self.total_questions}")
+        self.text.set(f"Game Over! Final Score: {self.logic.correct_count}/{self.logic.total_questions}")

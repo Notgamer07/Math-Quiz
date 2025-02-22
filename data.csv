@@ -1,0 +1,6 @@
+Questions,Correct_Answer,Inputted_Answer,Result
+9x + 16 = 65,5.44,5.44,Correct
+9x + 7 = 20,1.44,NaN,Skipped
+1x + 8 = 34,26.0,26.0,Correct
+8x + 8 = 37,3.62,3.11,Incorrect
+6x + 12 = 59,7.83,NaN,Skipped

@@ -2,8 +2,10 @@ import pandas as pd
 import os
 
 class Database:
-    def __init__(self, file_path):
-        self.file_path = file_path
+    script_dir = os.path.dirname(os.path.abspath(__file__))  # Get script's directory
+    file_path = os.path.join(script_dir, "data.csv")
+    def __init__(self):
+        self.file_path = self.file_path
         self.data = {
             'Questions': [],
             'Correct_Answer': [],
@@ -11,9 +13,9 @@ class Database:
             'Result': []
         }
 
-    def store_question(self, question, correct_answer):
-        self.data['Questions'].append(question)
-        self.data['Correct_Answer'].append(correct_answer)
+    def store_question(self, questions, correct_ans):
+        self.data['Questions'].append(questions)
+        self.data['Correct_Answer'].append(correct_ans)
 
     def store_answer(self, answer, result):
         self.data['Inputted_Answer'].append(answer)

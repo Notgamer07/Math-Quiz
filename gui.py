@@ -9,7 +9,7 @@ class MathGame:
         self.root.title("Math Game")
         self.root.configure(bg="lightblue")
 
-        self.db = Database("data.csv")
+        self.db = Database()
         self.logic = GameLogic()
         self.time_left = 20
 
@@ -53,6 +53,7 @@ class MathGame:
 
     def add_question(self):
         question, options, self.correct_answer = self.logic.generate_question()
+        self.db.store_question(question,self.correct_answer)
         self.options_list = options  # Store options list
         self.text.set(f"Solve: {question}")
 

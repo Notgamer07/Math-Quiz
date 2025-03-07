@@ -1,41 +1,55 @@
 from tkinter import Tk, Frame, Label, Button, StringVar, CENTER, NORMAL, DISABLED, RAISED
 from database import Database
 from game_logic import GameLogic
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import pandas as pd
 
 class MathGame:
     def __init__(self, root):
         self.root = root
-        self.root.geometry("600x600")
+        self.root.geometry("1000x600")  # Increased width to fit timer, quiz, and graph
         self.root.title("Math Game")
         self.root.configure(bg="lightblue")
 
         self.db = Database()
         self.logic = GameLogic()
-        self.time_left = 120
+        self.time_left = 5
 
         self.text = StringVar(value="Question will appear here")
         self.sam1 = StringVar(value="START")
-        self.timer_text = StringVar(value=f"Time Left: {self.time_left}s")
+        self.timer_text = StringVar(value=f"{self.time_left:02d}:00")  # Digital clock format
         self.score_text = StringVar(value="Score: 0/0")
 
         self.setup_ui()
 
     def setup_ui(self):
-        self.frame = Frame(self.root, bg="lightblue", padx=20, pady=20)
-        self.frame.place(relx=0.5, rely=0.5, anchor=CENTER)
+        # Left Frame for Timer
+        self.left_frame = Frame(self.root, bg="black", width=200, height=100)
+        self.left_frame.pack_propagate(False)
+        self.left_frame.pack(side="left", padx=20, pady=20)
+        
+        self.timer_label = Label(self.left_frame, textvariable=self.timer_text, font=("Arial", 24, "bold"), bg="black", fg="red")
+        self.timer_label.pack(expand=True)
+        
+        # Center Frame for Quiz
+        self.center_frame = Frame(self.root, bg="lightblue", padx=20, pady=20)
+        self.center_frame.pack(side="left", fill="both", expand=True)
 
-        Label(self.frame, text="MATH QUIZ", fg="white", bg="black", font=("Old English Text", 20), padx=10, pady=10).grid(row=0, column=0, columnspan=2, pady=10)
+        Label(self.center_frame, text="MATH QUIZ", fg="white", bg="black", font=("Old English Text", 20), padx=10, pady=10).pack()
 
-        self.timer_label = Label(self.frame, textvariable=self.timer_text, font=("Arial", 14, "bold"), bg="lightblue", fg="red")
-        self.timer_label.grid(row=1, column=0, columnspan=2, pady=10)
+        Label(self.center_frame, textvariable=self.text, font=("Arial", 14), bg="lightblue").pack(pady=20)
 
-        Label(self.frame, textvariable=self.text, font=("Arial", 14), bg="lightblue").grid(row=2, column=0, columnspan=2, pady=20)
+        self.score_label = Label(self.center_frame, textvariable=self.score_text, font=("Arial", 12, "bold"), bg="lightblue")
+        self.score_label.pack(pady=10)
 
-        self.score_label = Label(self.frame, textvariable=self.score_text, font=("Arial", 12, "bold"), bg="lightblue")
-        self.score_label.grid(row=3, column=0, columnspan=2, pady=10)
+        self.start_button = Button(self.center_frame, textvariable=self.sam1, padx=20, font=("Arial", 14), bg="green", fg="white", relief=RAISED, bd=5, command=self.start_game)
+        self.start_button.pack(pady=10)
 
-        self.start_button = Button(self.frame, textvariable=self.sam1, padx=20, font=("Arial", 14), bg="green", fg="white", relief=RAISED, bd=5, command=self.start_game)
-        self.start_button.grid(row=4, column=0, columnspan=2, pady=10)
+        # Right Frame for Graph (initially empty)
+        self.right_frame = Frame(self.root, bg="lightblue", padx=10, pady=10, width=300)
+        self.right_frame.pack_propagate(False)
+        self.right_frame.pack(side="right", fill="both", expand=True)
 
     def start_game(self):
         self.sam1.set("SKIP")
@@ -47,30 +61,30 @@ class MathGame:
     def create_options(self):
         self.option_buttons = []
         for i in range(4):
-            btn = Button(self.frame, padx=50, font=("Arial", 12, "bold"), relief=RAISED, bd=5)
-            btn.grid(row=5 + i, column=0, columnspan=2, pady=5)
+            btn = Button(self.center_frame, padx=50, font=("Arial", 12, "bold"), relief=RAISED, bd=5)
+            btn.pack(pady=5)
             self.option_buttons.append(btn)
 
     def add_question(self):
         question, options, self.correct_answer = self.logic.generate_question()
-        self.db.store_question(question,self.correct_answer)
-        self.options_list = options  # Store options list
+        self.db.store_question(question, self.correct_answer)
+        self.options_list = options
         self.text.set(f"Solve: {question}")
 
         for i, option in enumerate(options):
             self.option_buttons[i].config(
-            text=round(option, 2),
-            command=lambda btn=self.option_buttons[i], opt=option: self.check_answer(btn, opt),
-            bg="white",
-            state=NORMAL
-        )
+                text=round(option, 2),
+                command=lambda btn=self.option_buttons[i], opt=option: self.check_answer(btn, opt),
+                bg="white",
+                state=NORMAL
+            )
 
     def check_answer(self, button, selected):
         is_correct = self.logic.check_answer(selected)
         button.config(bg="green" if is_correct else "red")
 
         if not is_correct:
-            for btn, opt in zip(self.option_buttons, self.options_list):  # Now options_list is defined
+            for btn, opt in zip(self.option_buttons, self.options_list):
                 if round(opt, 2) == round(self.correct_answer, 2):
                     btn.config(bg="green")
 
@@ -88,10 +102,12 @@ class MathGame:
 
     def update_timer(self, time_left):
         if time_left > 0:
-            self.timer_text.set(f"Time Left: {time_left}s")
+            minutes = time_left // 60
+            seconds = time_left % 60
+            self.timer_text.set(f"{minutes:02d}:{seconds:02d}")  # Digital clock format
             self.root.after(1000, self.update_timer, time_left - 1)
         else:
-            self.timer_text.set("Time's Up!")
+            self.timer_text.set("00:00")
             self.disable_game()
 
     def disable_game(self):
@@ -100,3 +116,32 @@ class MathGame:
         self.start_button.config(command=self.root.quit)
         self.db.save_to_csv()
         self.text.set(f"Game Over! Final Score: {self.logic.correct_count}/{self.logic.total_questions}")
+
+        # Show graph in right frame only after time runs out
+        self.update_graph()
+
+    def update_graph(self):
+        df = self.db.read().dropna()
+        if df.empty:
+            return
+
+        x = range(len(df))
+        correct_answers = df['Correct_Answer']
+        inputted_answers = df['Inputted_Answer']
+
+        fig, ax = plt.subplots(figsize=(5, 4))
+        ax.plot(x, correct_answers, label="Correct Answer", color='g', linestyle='-', marker='o')
+        ax.plot(x, inputted_answers, label="Inputted Answer", color='r', linestyle='--', marker='x')
+        ax.fill_between(x, correct_answers, inputted_answers, color='gray', alpha=0.3)
+        ax.set_xlabel("Question Index")
+        ax.set_ylabel("Answer Value")
+        ax.set_title("Correct vs Inputted Answer")
+        ax.legend()
+        ax.grid(True)
+
+        for widget in self.right_frame.winfo_children():
+            widget.destroy()
+
+        canvas = FigureCanvasTkAgg(fig, master=self.right_frame)
+        canvas.get_tk_widget().pack(fill="both", expand=True)
+        canvas.draw()

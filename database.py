@@ -46,3 +46,14 @@ class Database:
         for key in self.data.keys():
             self.data[key] = []
 
+    def read(self):
+        df = pd.read_csv(self.file_path)
+        
+        # ✅ Ensure the required columns exist before selection
+        required_columns = ["Correct_Answer", "Inputted_Answer"]
+        missing_columns = [col for col in required_columns if col not in df.columns]
+
+        if missing_columns:
+            raise KeyError(f"Missing columns in data.csv: {missing_columns}")
+
+        return df[['Correct_Answer', 'Inputted_Answer']].dropna()

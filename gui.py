@@ -14,7 +14,7 @@ class MathGame:
 
         self.db = Database()
         self.logic = GameLogic()
-        self.time_left = 3
+        self.time_left = 5
 
         self.text = StringVar(value="Question will appear here")
         self.sam1 = StringVar(value="START")
@@ -25,11 +25,12 @@ class MathGame:
 
     def setup_ui(self):
         # Left Frame for Timer
-        self.left_frame = Frame(self.root, bg="black", padx=20, pady=20)
-        self.left_frame.pack(side="left", fill="y")
+        self.left_frame = Frame(self.root, bg="black", width=200, height=100)
+        self.left_frame.pack_propagate(False)
+        self.left_frame.pack(side="left", padx=20, pady=20)
         
         self.timer_label = Label(self.left_frame, textvariable=self.timer_text, font=("Arial", 24, "bold"), bg="black", fg="red")
-        self.timer_label.pack(pady=50)
+        self.timer_label.pack(expand=True)
         
         # Center Frame for Quiz
         self.center_frame = Frame(self.root, bg="lightblue", padx=20, pady=20)
@@ -44,6 +45,11 @@ class MathGame:
 
         self.start_button = Button(self.center_frame, textvariable=self.sam1, padx=20, font=("Arial", 14), bg="green", fg="white", relief=RAISED, bd=5, command=self.start_game)
         self.start_button.pack(pady=10)
+
+        # Right Frame for Graph (initially empty)
+        self.right_frame = Frame(self.root, bg="lightblue", padx=10, pady=10, width=300)
+        self.right_frame.pack_propagate(False)
+        self.right_frame.pack(side="right", fill="both", expand=True)
 
     def start_game(self):
         self.sam1.set("SKIP")
@@ -111,10 +117,7 @@ class MathGame:
         self.db.save_to_csv()
         self.text.set(f"Game Over! Final Score: {self.logic.correct_count}/{self.logic.total_questions}")
 
-        # ✅ Create the right frame and show the graph only after time runs out
-        self.right_frame = Frame(self.root, bg="white", padx=10, pady=10)
-        self.right_frame.pack(side="right", fill="both", expand=True)
-
+        # Show graph in right frame only after time runs out
         self.update_graph()
 
     def update_graph(self):

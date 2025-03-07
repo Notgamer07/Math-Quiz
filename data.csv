@@ -23,3 +23,7 @@ Questions,Correct_Answer,Inputted_Answer,Result
 6x + 18 = 39,3.5,NaN,Skipped
 6x + 8 = 75,11.17,NaN,Skipped
 1x + 9 = 38,29.0,NaN,Skipped
+2x + 18 = 79,30.5,NaN,Skipped
+4x + 20 = 12,-2.0,NaN,Skipped
+5x + 18 = 86,13.6,NaN,Skipped
+8x + 13 = 55,5.25,NaN,Skipped

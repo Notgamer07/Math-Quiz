@@ -22,6 +22,29 @@ class GameLogic:
         self.total_questions += 1
         
         return question, options, self.correct_answer
+    def generate_polynomial(self):
+        import math as m
+        max_attempts=100
+        for i in max_attempts:
+            a=r.randint(1,10)
+            b=r.randint(-10,10)
+            c=r.randint(-5,5)
+            di=(b**2) - (4*a*c)
+            if di>=0:
+                break
+        question=f"{a}x² + {b}x + {c} = 0"
+        root1=(-b + m.sqrt(di))/(2*a)
+        root2=(-b - m.sqrt(di))/(2*a)
+        correct_answer=(round(root1,2),(round(root2,2)))
+        options={correct_answer}
+        while len(options)<4:
+            w_root1=root1 + r.uniform(-5,5)
+            w_root2=r.uniform(root1,root2)
+            wrong_option=(round(w_root1,2),round(w_root2,2))
+            options.add(wrong_option)
+        options=list(options)
+        r.shuffle(options)
+        return question,options,correct_answer
 
     def check_answer(self, selected):
         is_correct = round(selected, 2) == self.correct_answer

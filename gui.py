@@ -11,7 +11,7 @@ class MathGame:
 
         self.db = Database()
         self.logic = GameLogic()
-        self.time_left = 20
+        self.time_left = 120
 
         self.text = StringVar(value="Question will appear here")
         self.sam1 = StringVar(value="START")

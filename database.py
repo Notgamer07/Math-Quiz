@@ -37,6 +37,7 @@ class Database:
     # Convert dictionary to DataFrame
         df = pd.DataFrame(self.data)
         df2 = df[['Correct_Answer','Inputted_Answer']]
+        
     # Save to CSV (append if file exists, else create new)
         if os.path.exists(self.file_path):
             df.to_csv(self.file_path, mode="a", header=False, index=False, na_rep="NaN")

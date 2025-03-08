@@ -18,7 +18,7 @@ class MathGame:
         minutes = self.time_left // 60
         seconds = self.time_left % 60
         
-        self.text = StringVar(value="Question will appear here")
+        self.text = StringVar(value="Select Difficulty :")
         self.sam1 = StringVar(value="START")
         self.timer_text = StringVar(value=f"{minutes:02d}:{seconds:02d}")  # Digital clock format
         self.score_text = StringVar(value="Score: 0/0")
@@ -35,7 +35,7 @@ class MathGame:
         
         self.center_frame = Frame(self.root, bg="lightblue", padx=20, pady=20)
         self.center_frame.pack(side="left", fill="both", expand=True)
-
+        
         Label(self.center_frame, text="MATH QUIZ", fg="white", bg="black", font=("Old English Text", 20), padx=10, pady=10).pack()
 
         Label(self.center_frame, textvariable=self.text, font=("Arial", 14), bg="lightblue").pack(pady=20)
@@ -46,16 +46,52 @@ class MathGame:
         self.start_button = Button(self.center_frame, textvariable=self.sam1, padx=20, font=("Arial", 14), bg="green", fg="white", relief=RAISED, bd=5, command=self.start_game)
         self.start_button.pack(pady=10)
 
+        text_list=['Beginner','Intermediate','Coming Soon','Coming Soon']
+    
+        self.beginner_button = Button(self.center_frame, state= NORMAL, command=lambda: self.select_difficulty(0), text=text_list[0], padx=50, font=("Arial", 12, "bold"), relief=RAISED, bd=5)
+        self.beginner_button.pack(pady=5)
+        self.intermediate_button = Button(self.center_frame, state= NORMAL, command=lambda: self.select_difficulty(1), text=text_list[1], padx=50, font=("Arial", 12, "bold"), relief=RAISED, bd=5)
+        self.intermediate_button.pack(pady=5)
+        self.coming_s1_button = Button(self.center_frame, state= DISABLED, command=lambda: self.select_difficulty(2), text=text_list[2], padx=50, font=("Arial", 12, "bold"), relief=RAISED, bd=5)
+        self.coming_s1_button.pack(pady=5)
+        self.coming_s2_button = Button(self.center_frame, state= DISABLED, command=lambda: self.select_difficulty(3), text=text_list[3], padx=50, font=("Arial", 12, "bold"), relief=RAISED, bd=5)
+        self.coming_s2_button.pack(pady=5)
+
         self.right_frame = Frame(self.root, bg="lightblue", padx=10, pady=10, width=300)
         self.right_frame.pack_propagate(False)
         self.right_frame.pack(side="right", fill="both", expand=True)
 
+    def select_difficulty(self, selected):
+        self.logic.set_difficulty(selected)
+        if(selected == 0):
+            self.beginner_button.config(bg='#4CAF50',fg='black')
+        elif(selected == 1):
+            self.intermediate_button.config(bg='#4CAF50',fg='black')
+        elif(selected == 2):
+            self.coming_s_button.config(bg='#4CAF50',fg='black')
+        elif(selected == 3):
+            self.coming_s_button.config(bg='#4CAF50',fg='black')
+
     def start_game(self):
         self.sam1.set("SKIP")
         self.start_button.config(command=self.skip_question)
+        self.beginner_button.destroy()
+        self.intermediate_button.destroy()
+        self.coming_s1_button.destroy()
+        self.coming_s2_button.destroy()
         self.create_options()
         self.add_question()
         self.update_timer(self.time_left)
+
+    def choose_difficulty(self):
+        text_list=['Beginner','Intermediate','Coming Soon','Coming Soon']
+        for i,tex in enumerate(text_list):
+            self.option_buttons[i].config(
+                text=tex,
+                command = lambda opt=tex : self.logic.choose_difficulty(opt),
+                bg="white",
+                state= (DISABLED if tex == 'Coming Soon' else NORMAL)
+            )
 
     def on_closing(self):
         plt.close('all')  

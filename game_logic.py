@@ -5,7 +5,17 @@ class GameLogic:
         self.correct_answer = None
         self.total_questions = 0
         self.correct_count = 0
-
+        self.selected_difficulty = None
+    
+    def set_difficulty(self,value):
+        self.selected_difficulty = value
+    
+    def choose_generator(self):
+        if(self.selected_difficulty == 0):
+            self.generate_question(self)
+        elif(self.selected_difficulty == 1):
+            self.generate_polynomial(self)
+    
     def generate_question(self):
         a, b, c = r.randint(1, 9), r.randint(1, 20), r.randint(-9, 90)
         correct_answer = (c - b) / a
@@ -22,6 +32,7 @@ class GameLogic:
         self.total_questions += 1
         
         return question, options, self.correct_answer
+    
     def generate_polynomial(self):
         import math as m
         max_attempts=100

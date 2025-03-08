@@ -7,13 +7,13 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 class MathGame:
     def __init__(self, root):
         self.root = root
-        self.root.geometry("1000x600")  # Increased width to fit timer, quiz, and graph
+        self.root.geometry("1000x600")
         self.root.title("Math Game")
         self.root.configure(bg="lightblue")
 
         self.db = Database()
         self.logic = GameLogic()
-        self.time_left = 3
+        self.time_left = 10
 
         minutes = self.time_left // 60
         seconds = self.time_left % 60
@@ -52,10 +52,8 @@ class MathGame:
         self.beginner_button.pack(pady=5)
         self.intermediate_button = Button(self.center_frame, state= NORMAL, command=lambda: self.select_difficulty(1), text=text_list[1], padx=50, font=("Arial", 12, "bold"), relief=RAISED, bd=5)
         self.intermediate_button.pack(pady=5)
-        self.coming_s1_button = Button(self.center_frame, state= DISABLED, command=lambda: self.select_difficulty(2), text=text_list[2], padx=50, font=("Arial", 12, "bold"), relief=RAISED, bd=5)
-        self.coming_s1_button.pack(pady=5)
-        self.coming_s2_button = Button(self.center_frame, state= DISABLED, command=lambda: self.select_difficulty(3), text=text_list[3], padx=50, font=("Arial", 12, "bold"), relief=RAISED, bd=5)
-        self.coming_s2_button.pack(pady=5)
+        self.Advanced = Button(self.center_frame, state= DISABLED, command=lambda: self.select_difficulty(2), text=text_list[2], padx=50, font=("Arial", 12, "bold"), relief=RAISED, bd=5)
+        self.Advanced.pack(pady=5)
 
         self.right_frame = Frame(self.root, bg="lightblue", padx=10, pady=10, width=300)
         self.right_frame.pack_propagate(False)
@@ -64,34 +62,22 @@ class MathGame:
     def select_difficulty(self, selected):
         self.logic.set_difficulty(selected)
         if(selected == 0):
-            self.beginner_button.config(bg='#4CAF50',fg='black')
+            self.beginner_button.config(bg='#4CAF50',fg='#FF9800')
         elif(selected == 1):
-            self.intermediate_button.config(bg='#4CAF50',fg='black')
+            self.intermediate_button.config(bg='#4CAF50',fg='white')
         elif(selected == 2):
-            self.coming_s_button.config(bg='#4CAF50',fg='black')
-        elif(selected == 3):
-            self.coming_s_button.config(bg='#4CAF50',fg='black')
+            self.Advanced.config(bg='#4CAF50',fg='black')
 
     def start_game(self):
         self.sam1.set("SKIP")
         self.start_button.config(command=self.skip_question)
         self.beginner_button.destroy()
         self.intermediate_button.destroy()
-        self.coming_s1_button.destroy()
-        self.coming_s2_button.destroy()
+        self.Advanced.destroy()
         self.create_options()
+        
         self.add_question()
         self.update_timer(self.time_left)
-
-    def choose_difficulty(self):
-        text_list=['Beginner','Intermediate','Coming Soon','Coming Soon']
-        for i,tex in enumerate(text_list):
-            self.option_buttons[i].config(
-                text=tex,
-                command = lambda opt=tex : self.logic.choose_difficulty(opt),
-                bg="white",
-                state= (DISABLED if tex == 'Coming Soon' else NORMAL)
-            )
 
     def on_closing(self):
         plt.close('all')  
@@ -106,14 +92,15 @@ class MathGame:
             self.option_buttons.append(btn)
 
     def add_question(self):
-        question, options, self.correct_answer = self.logic.generate_question()
+        func = self.logic.generator()
+        question, options, self.correct_answer = func()
         self.db.store_question(question, self.correct_answer)
         self.options_list = options
         self.text.set(f"Solve: {question}")
 
         for i, option in enumerate(options):
             self.option_buttons[i].config(
-                text=round(option, 2),
+                text=option,
                 command=lambda btn=self.option_buttons[i], opt=option: self.check_answer(btn, opt),
                 bg="white",
                 state=NORMAL
@@ -125,7 +112,7 @@ class MathGame:
 
         if not is_correct:
             for btn, opt in zip(self.option_buttons, self.options_list):
-                if round(opt, 2) == round(self.correct_answer, 2):
+                if opt == self.correct_answer:
                     btn.config(bg="green")
  
         self.db.store_answer(round(selected, 2), "Correct" if is_correct else "Incorrect")

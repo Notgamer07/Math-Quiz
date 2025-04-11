@@ -13,7 +13,7 @@ class MathGame:
 
         self.db = Database()
         self.logic = GameLogic()
-        self.time_left = 10
+        self.time_left = 120 #enter seconds
 
         minutes = self.time_left // 60
         seconds = self.time_left % 60
@@ -63,7 +63,9 @@ class MathGame:
         self.logic.set_difficulty(selected)
         if(selected == 0):
             self.beginner_button.config(bg='#4CAF50',fg='#FF9800')
+            self.intermediate_button.config(bg='white',fg='black')
         elif(selected == 1):
+            self.beginner_button.config(bg='white',fg='black')
             self.intermediate_button.config(bg='#4CAF50',fg='white')
         elif(selected == 2):
             self.Advanced.config(bg='#4CAF50',fg='black')
@@ -141,6 +143,7 @@ class MathGame:
         for btn in self.option_buttons:
             btn.config(state=DISABLED)
         self.start_button.config(command=self.root.quit)
+        self.sam1.set('QUIT')
         self.db.save_to_csv()
         self.text.set(f"Game Over! Final Score: {self.logic.correct_count}/{self.logic.total_questions}")
         self.update_graph()

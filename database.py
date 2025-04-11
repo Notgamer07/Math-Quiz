@@ -4,6 +4,7 @@ import os
 class Database:
     script_dir = os.path.dirname(os.path.abspath(__file__))  # Get script's directory
     file_path = os.path.join(script_dir, "data.csv")
+    session_file_path = os.path.join(script_dir, "current_session.csv")
     def __init__(self):
         self.file_path = self.file_path
         self.data = {
@@ -35,25 +36,23 @@ class Database:
 
     # Convert dictionary to DataFrame
         df = pd.DataFrame(self.data)
+        df2 = df[['Correct_Answer','Inputted_Answer']]
 
     # Save to CSV (append if file exists, else create new)
         if os.path.exists(self.file_path):
             df.to_csv(self.file_path, mode="a", header=False, index=False, na_rep="NaN")
         else:
             df.to_csv(self.file_path, mode="w", header=True, index=False, na_rep="NaN")
+        df2.to_csv(self.session_file_path, mode='w', header=True, index=False, na_rep="NaN")
 
     # Clear data after saving
         for key in self.data.keys():
             self.data[key] = []
 
     def read(self):
-        df = pd.read_csv(self.file_path)
-        
-        # ✅ Ensure the required columns exist before selection
-        required_columns = ["Correct_Answer", "Inputted_Answer"]
-        missing_columns = [col for col in required_columns if col not in df.columns]
-
-        if missing_columns:
-            raise KeyError(f"Missing columns in data.csv: {missing_columns}")
-
-        return df[['Correct_Answer', 'Inputted_Answer']].dropna()
+        if(os.path.exists(self.session_file_path)):
+            df = pd.read_csv(self.session_file_path)
+            return df
+        else:
+            df = pd.read_csv(self.file_path)
+            return df[['Correct_Answer', 'Inputted_Answer']].dropna()

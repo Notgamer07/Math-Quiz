@@ -1,30 +1,31 @@
-from tkinter import Tk, Frame, Label, Button, StringVar, CENTER, NORMAL, DISABLED, RAISED
+from tkinter import Frame, Label, Button, StringVar, NORMAL, DISABLED, RAISED
 from database import Database
 from game_logic import GameLogic
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import pandas as pd
 
 class MathGame:
     def __init__(self, root):
         self.root = root
-        self.root.geometry("1000x600")  # Increased width to fit timer, quiz, and graph
+        self.root.geometry("1000x600")
         self.root.title("Math Game")
         self.root.configure(bg="lightblue")
 
         self.db = Database()
         self.logic = GameLogic()
-        self.time_left = 5
+        self.time_left = 10
 
-        self.text = StringVar(value="Question will appear here")
+        minutes = self.time_left // 60
+        seconds = self.time_left % 60
+        
+        self.text = StringVar(value="Select Difficulty :")
         self.sam1 = StringVar(value="START")
-        self.timer_text = StringVar(value=f"{self.time_left:02d}:00")  # Digital clock format
+        self.timer_text = StringVar(value=f"{minutes:02d}:{seconds:02d}")  # Digital clock format
         self.score_text = StringVar(value="Score: 0/0")
-
+        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.setup_ui()
 
     def setup_ui(self):
-        # Left Frame for Timer
         self.left_frame = Frame(self.root, bg="black", width=200, height=100)
         self.left_frame.pack_propagate(False)
         self.left_frame.pack(side="left", padx=20, pady=20)
@@ -32,10 +33,9 @@ class MathGame:
         self.timer_label = Label(self.left_frame, textvariable=self.timer_text, font=("Arial", 24, "bold"), bg="black", fg="red")
         self.timer_label.pack(expand=True)
         
-        # Center Frame for Quiz
         self.center_frame = Frame(self.root, bg="lightblue", padx=20, pady=20)
         self.center_frame.pack(side="left", fill="both", expand=True)
-
+        
         Label(self.center_frame, text="MATH QUIZ", fg="white", bg="black", font=("Old English Text", 20), padx=10, pady=10).pack()
 
         Label(self.center_frame, textvariable=self.text, font=("Arial", 14), bg="lightblue").pack(pady=20)
@@ -46,17 +46,43 @@ class MathGame:
         self.start_button = Button(self.center_frame, textvariable=self.sam1, padx=20, font=("Arial", 14), bg="green", fg="white", relief=RAISED, bd=5, command=self.start_game)
         self.start_button.pack(pady=10)
 
-        # Right Frame for Graph (initially empty)
+        text_list=['Beginner','Intermediate','Coming Soon','Coming Soon']
+    
+        self.beginner_button = Button(self.center_frame, state= NORMAL, command=lambda: self.select_difficulty(0), text=text_list[0], padx=50, font=("Arial", 12, "bold"), relief=RAISED, bd=5)
+        self.beginner_button.pack(pady=5)
+        self.intermediate_button = Button(self.center_frame, state= NORMAL, command=lambda: self.select_difficulty(1), text=text_list[1], padx=50, font=("Arial", 12, "bold"), relief=RAISED, bd=5)
+        self.intermediate_button.pack(pady=5)
+        self.Advanced = Button(self.center_frame, state= DISABLED, command=lambda: self.select_difficulty(2), text=text_list[2], padx=50, font=("Arial", 12, "bold"), relief=RAISED, bd=5)
+        self.Advanced.pack(pady=5)
+
         self.right_frame = Frame(self.root, bg="lightblue", padx=10, pady=10, width=300)
         self.right_frame.pack_propagate(False)
         self.right_frame.pack(side="right", fill="both", expand=True)
 
+    def select_difficulty(self, selected):
+        self.logic.set_difficulty(selected)
+        if(selected == 0):
+            self.beginner_button.config(bg='#4CAF50',fg='#FF9800')
+        elif(selected == 1):
+            self.intermediate_button.config(bg='#4CAF50',fg='white')
+        elif(selected == 2):
+            self.Advanced.config(bg='#4CAF50',fg='black')
+
     def start_game(self):
         self.sam1.set("SKIP")
         self.start_button.config(command=self.skip_question)
+        self.beginner_button.destroy()
+        self.intermediate_button.destroy()
+        self.Advanced.destroy()
         self.create_options()
+        
         self.add_question()
         self.update_timer(self.time_left)
+
+    def on_closing(self):
+        plt.close('all')  
+        self.root.quit()  
+        self.root.destroy()  
 
     def create_options(self):
         self.option_buttons = []
@@ -66,14 +92,15 @@ class MathGame:
             self.option_buttons.append(btn)
 
     def add_question(self):
-        question, options, self.correct_answer = self.logic.generate_question()
+        func = self.logic.generator()
+        question, options, self.correct_answer = func()
         self.db.store_question(question, self.correct_answer)
         self.options_list = options
         self.text.set(f"Solve: {question}")
 
         for i, option in enumerate(options):
             self.option_buttons[i].config(
-                text=round(option, 2),
+                text=option,
                 command=lambda btn=self.option_buttons[i], opt=option: self.check_answer(btn, opt),
                 bg="white",
                 state=NORMAL
@@ -85,9 +112,9 @@ class MathGame:
 
         if not is_correct:
             for btn, opt in zip(self.option_buttons, self.options_list):
-                if round(opt, 2) == round(self.correct_answer, 2):
+                if opt == self.correct_answer:
                     btn.config(bg="green")
-
+ 
         self.db.store_answer(round(selected, 2), "Correct" if is_correct else "Incorrect")
         self.update_score()
         self.root.after(190, self.add_question)
@@ -104,7 +131,7 @@ class MathGame:
         if time_left > 0:
             minutes = time_left // 60
             seconds = time_left % 60
-            self.timer_text.set(f"{minutes:02d}:{seconds:02d}")  # Digital clock format
+            self.timer_text.set(f"{minutes:02d}:{seconds:02d}") 
             self.root.after(1000, self.update_timer, time_left - 1)
         else:
             self.timer_text.set("00:00")
@@ -116,8 +143,6 @@ class MathGame:
         self.start_button.config(command=self.root.quit)
         self.db.save_to_csv()
         self.text.set(f"Game Over! Final Score: {self.logic.correct_count}/{self.logic.total_questions}")
-
-        # Show graph in right frame only after time runs out
         self.update_graph()
 
     def update_graph(self):

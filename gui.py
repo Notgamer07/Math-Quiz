@@ -13,7 +13,7 @@ class MathGame:
 
         self.db = Database()
         self.logic = GameLogic()
-        self.time_left = 120 #enter seconds
+        self.time_left = 20 #enter seconds
 
         minutes = self.time_left // 60
         seconds = self.time_left % 60
@@ -52,8 +52,6 @@ class MathGame:
         self.beginner_button.pack(pady=5)
         self.intermediate_button = Button(self.center_frame, state= NORMAL, command=lambda: self.select_difficulty(1), text=text_list[1], padx=50, font=("Arial", 12, "bold"), relief=RAISED, bd=5)
         self.intermediate_button.pack(pady=5)
-        self.Advanced = Button(self.center_frame, state= DISABLED, command=lambda: self.select_difficulty(2), text=text_list[2], padx=50, font=("Arial", 12, "bold"), relief=RAISED, bd=5)
-        self.Advanced.pack(pady=5)
 
         self.right_frame = Frame(self.root, bg="lightblue", padx=10, pady=10, width=300)
         self.right_frame.pack_propagate(False)
@@ -75,7 +73,6 @@ class MathGame:
         self.start_button.config(command=self.skip_question)
         self.beginner_button.destroy()
         self.intermediate_button.destroy()
-        self.Advanced.destroy()
         self.create_options()
         
         self.add_question()

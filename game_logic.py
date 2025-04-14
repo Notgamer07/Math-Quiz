@@ -15,6 +15,8 @@ class GameLogic:
             return self.generate_question
         elif(self.selected_difficulty == 1):
             return self.generate_polynomial
+        else:
+            return self.generate_question
     
     def generate_question(self):
         a, b, c = r.randint(1, 9), r.randint(-20, 20), r.randint(-9, 90)

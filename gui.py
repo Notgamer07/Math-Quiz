@@ -13,7 +13,7 @@ class MathGame:
 
         self.db = Database()
         self.logic = GameLogic()
-        self.time_left = 20 #enter seconds
+        self.time_left = 120 #enter seconds
 
         minutes = self.time_left // 60
         seconds = self.time_left % 60

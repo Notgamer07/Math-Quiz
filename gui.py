@@ -13,7 +13,7 @@ class MathGame:
 
         self.db = Database()
         self.logic = GameLogic()
-        self.time_left = 120 #enter seconds
+        self.time_left = 10 #enter seconds
 
         minutes = self.time_left // 60
         seconds = self.time_left % 60
@@ -158,6 +158,10 @@ class MathGame:
         ax.plot(x, correct_answers, label="Correct Answer", color='g', linestyle='-', marker='o')
         ax.plot(x, inputted_answers, label="Inputted Answer", color='r', linestyle='--', marker='x')
         ax.fill_between(x, correct_answers, inputted_answers, color='gray', alpha=0.3)
+        for i, (cx, ix) in enumerate(zip(correct_answers, inputted_answers)):
+            ax.text(i, cx, f"{cx}", fontsize=8, color='green', ha='right')
+            ax.text(i, ix, f"{ix}", fontsize=8, color='red', ha='left')
+        
         ax.set_xlabel("Question Index")
         ax.set_ylabel("Answer Value")
         ax.set_title("Correct vs Inputted Answer")
@@ -166,6 +170,29 @@ class MathGame:
 
         for widget in self.right_frame.winfo_children():
             widget.destroy()
+
+        canvas = FigureCanvasTkAgg(fig, master=self.right_frame)
+        canvas.get_tk_widget().pack(fill="both", expand=True)
+        canvas.draw()
+
+    def update_bar_graph(self):
+        # Clear existing widgets in the right frame
+        for widget in self.right_frame.winfo_children():
+            widget.destroy()
+
+        correct = self.logic.correct_count
+        incorrect = self.logic.total_questions - correct
+
+        fig, ax = plt.subplots(figsize=(4, 3))
+        bars = ax.bar(['Correct', 'Incorrect'], [correct, incorrect], color=['green', 'red'])
+
+        # Add value labels on top of bars
+        for bar in bars:
+            yval = bar.get_height()
+            ax.text(bar.get_x() + bar.get_width() / 2, yval + 0.5, f'{int(yval)}', ha='center', va='bottom')
+
+        ax.set_title("Overall Performance")
+        ax.set_ylim(0, max(correct, incorrect) + 5)
 
         canvas = FigureCanvasTkAgg(fig, master=self.right_frame)
         canvas.get_tk_widget().pack(fill="both", expand=True)
